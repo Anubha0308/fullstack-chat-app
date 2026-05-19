@@ -35,7 +35,7 @@
 
 <br/>
 
-**[🚀 Live Demo](https://fullstack-chat-app-XXXX.onrender.com)** &nbsp;·&nbsp; **[🐛 Report Bug](https://github.com/UTKARSHH20/fullstack-chat-app/issues)** &nbsp;·&nbsp; **[✨ Request Feature](https://github.com/UTKARSHH20/fullstack-chat-app/issues)**
+**[🚀 Live Demo](https://fullstack-chat-app-1-bwr2.onrender.com/)** &nbsp;·&nbsp; **[🐛 Report Bug](https://github.com/UTKARSHH20/fullstack-chat-app/issues)** &nbsp;·&nbsp; **[✨ Request Feature](https://github.com/UTKARSHH20/fullstack-chat-app/issues)**
 
 <br/>
 
