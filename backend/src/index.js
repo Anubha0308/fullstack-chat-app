@@ -14,6 +14,15 @@ import messageRoutes from "./routes/message.route.js";
 import { app, server } from "./lib/socket.js";
 
 const PORT = process.env.PORT || 5001;
+
+const REQUIRED_ENV_VARS = ["MONGODB_URL", "JWT_SECRETKEY"];
+for (const envVar of REQUIRED_ENV_VARS) {
+    if (!process.env[envVar]) {
+        console.error(`FATAL ERROR: Environment variable ${envVar} is missing.`);
+        process.exit(1);
+    }
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
