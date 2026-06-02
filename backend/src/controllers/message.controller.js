@@ -180,6 +180,11 @@ export async function sendMessage(req, res) {
                     await webpush.sendNotification(receiverUser.pushSubscription, payload);
                 } catch (pushErr) {
                     console.error("Web push error:", pushErr.message);
+                    if (pushErr.statusCode === 410 || pushErr.statusCode === 404) {
+                        receiverUser.pushSubscription = null;
+                        await receiverUser.save();
+                        console.log(`Cleared expired push subscription for user ${receiverId}`);
+                    }
                 }
             }
         }
