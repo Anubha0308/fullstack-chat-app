@@ -296,3 +296,31 @@ export async function reactToMessage(req, res) {
         res.status(500).json({ message: "Could not update reaction" });
     }
 }
+
+export async function searchTextMessages(req, res) {
+    try {
+        const { id: partnerId } = req.params;
+        const { q = "" } = req.query;
+        if (!mongoose.Types.ObjectId.isValid(partnerId)) {
+            return res.status(400).json({ message: "Invalid partner user ID format" });
+        }
+        if (!q.trim()) return res.status(200).json([]);
+
+        const senderId = req.userId;
+        const safeQuery = escapeRegex(q.trim());
+
+        const messages = await Message.find({
+            $or: [
+                { senderId, receiverId: partnerId },
+                { senderId: partnerId, receiverId: senderId }
+            ],
+            message: { $regex: safeQuery, $options: "i" }
+        }).sort({ createdAt: 1 });
+
+        res.status(200).json(messages);
+    } catch (err) {
+        console.error("searchTextMessages:", err.message);
+        res.status(500).json({ message: "Could not search messages" });
+    }
+}
+
