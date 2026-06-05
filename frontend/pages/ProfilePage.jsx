@@ -25,16 +25,13 @@ export default function ProfilePage() {
         try {
             // Upload picture first if a new file was selected
             if (selectedFile) {
-                const reader = new FileReader()
-                reader.onloadend = async () => {
-                    const base64 = reader.result
-                    try {
-                        await updateProfilePicture(base64)
-                    } catch {
-                        // toast already shown
-                    }
-                }
-                reader.readAsDataURL(selectedFile)
+                const base64 = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(selectedFile);
+                });
+                await updateProfilePicture(base64);
             }
 
             // Update name if changed
