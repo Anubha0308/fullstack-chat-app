@@ -55,7 +55,26 @@ export default function MessageBubble({ msg, isMine, showTime, selectedUser, isO
         <span>Pinned Message</span>
     </div>
 )}
-                    {msg.replyTo?.message && <ReplyPreview replyTo={msg.replyTo} isMine={isMine} />}
+                    {msg.replyTo?.message && (
+    <>
+        <div className="text-[10px] text-info font-semibold mb-1">
+            🧵 Reply Thread
+        </div>
+
+        <ReplyPreview
+            replyTo={msg.replyTo}
+            isMine={isMine}
+        />
+
+        <div className="text-[10px] text-primary cursor-pointer hover:underline mb-1">
+    Jump to parent message
+</div>
+
+        <div className="text-[10px] text-primary cursor-pointer hover:underline mb-1">
+            Jump to parent message
+        </div>
+    </>
+)}
                     {msg.starred && (
                         <div className="flex items-center gap-1 text-[10px] text-warning font-semibold mb-1">
                             ⭐ Starred
