@@ -44,6 +44,13 @@ export default function Sidebar({ selectedUser, onSelectUser, isMobileHidden }) 
         return () => socket.off("getOnlineUsers")
     }, [])
 
+    const totalUnread = users.reduce(
+    (sum, user) => sum + (user.unreadCount || 0),
+    0
+)
+
+const activeChats = onlineUsers.length
+
     const filtered = users.filter(u =>
     (
         selectedFolder === "All" ||
@@ -117,6 +124,28 @@ export default function Sidebar({ selectedUser, onSelectUser, isMobileHidden }) 
             {folder}
         </button>
     ))}
+</div>
+
+<div className="px-3 py-2 border-b border-base-200">
+    <div className="stats stats-vertical shadow w-full">
+        <div className="stat py-2">
+            <div className="stat-title text-xs">
+                Active Chats
+            </div>
+            <div className="stat-value text-lg">
+                {activeChats}
+            </div>
+        </div>
+
+        <div className="stat py-2">
+            <div className="stat-title text-xs">
+                Unread Messages
+            </div>
+            <div className="stat-value text-lg">
+                {totalUnread}
+            </div>
+        </div>
+    </div>
 </div>
 
             <div className="flex-1 overflow-y-auto">
