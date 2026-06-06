@@ -34,6 +34,11 @@ export default function MessageBubble({ msg, isMine, showTime, selectedUser, isO
     </div>
 )}
                     {msg.replyTo?.message && <ReplyPreview replyTo={msg.replyTo} isMine={isMine} />}
+                    {msg.starred && (
+                        <div className="flex items-center gap-1 text-[10px] text-warning font-semibold mb-1">
+                            ⭐ Starred
+                            </div>
+                        )}
                     {msg.image && (
                         <img
                             src={msg.image} alt="attachment"
