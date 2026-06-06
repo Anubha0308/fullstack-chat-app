@@ -44,27 +44,32 @@ export const getReceiverSocketIds = (userId) => userSocketMap[userId] || [];
 io.on("connection", (socket) => {
     const userId = socket.userId;
 
-    if (userId) {
-        if (!userSocketMap[userId]) userSocketMap[userId] = [];
-        userSocketMap[userId].push(socket.id);
-        
-        // Also update lastSeen to 'now' when they connect
-        User.findByIdAndUpdate(userId, { lastSeen: new Date() }).catch(err => console.error(err));
-
-        // Mark offline pending messages as delivered
-        Message.updateMany(
-            { receiverId: userId, status: "sent" },
-            { $set: { status: "delivered" } }
-        ).then(async (res) => {
-            if (res.modifiedCount > 0) {
-                const senders = await Message.distinct("senderId", { receiverId: userId, status: "delivered" });
-                senders.forEach(senderIdStr => {
-                    const senderSockets = getReceiverSocketIds(senderIdStr.toString());
-                    senderSockets.forEach(s => io.to(s).emit("messagesDelivered", { receiverId: userId }));
-                });
-            }
-        }).catch(console.error);
+    // Early guard return: Prevent state pollution / memory leaks from unauthenticated sockets
+    if (!userId) {
+        console.warn(`[Socket.io] Connection rejected: Missing userId for socket ${socket.id}`);
+        return socket.disconnect(true);
     }
+
+    // Now safe to assume userId exists
+    if (!userSocketMap[userId]) userSocketMap[userId] = [];
+    userSocketMap[userId].push(socket.id);
+    
+    // Also update lastSeen to 'now' when they connect
+    User.findByIdAndUpdate(userId, { lastSeen: new Date() }).catch(err => console.error(err));
+
+    // Mark offline pending messages as delivered
+    Message.updateMany(
+        { receiverId: userId, status: "sent" },
+        { $set: { status: "delivered" } }
+    ).then(async (res) => {
+        if (res.modifiedCount > 0) {
+            const senders = await Message.distinct("senderId", { receiverId: userId, status: "delivered" });
+            senders.forEach(senderIdStr => {
+                const senderSockets = getReceiverSocketIds(senderIdStr.toString());
+                senderSockets.forEach(s => io.to(s).emit("messagesDelivered", { receiverId: userId }));
+            });
+        }
+    }).catch(console.error);
 
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
@@ -112,17 +117,17 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", async () => {
-        if (userId) {
-            userSocketMap[userId] = userSocketMap[userId]?.filter(id => id !== socket.id) || [];
-            if (userSocketMap[userId].length === 0) {
-                delete userSocketMap[userId];
-                try {
-                    await User.findByIdAndUpdate(userId, { lastSeen: new Date() });
-                } catch (err) {
-                    console.error(err);
-                }
+        userSocketMap[userId] = userSocketMap[userId]?.filter(id => id !== socket.id) || [];
+        
+        if (userSocketMap[userId].length === 0) {
+            delete userSocketMap[userId];
+            try {
+                await User.findByIdAndUpdate(userId, { lastSeen: new Date() });
+            } catch (err) {
+                console.error(err);
             }
         }
+        
         io.emit("getOnlineUsers", Object.keys(userSocketMap));
     });
 });
