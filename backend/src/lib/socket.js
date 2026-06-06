@@ -41,6 +41,24 @@ const userSocketMap = {};
 
 export const getReceiverSocketIds = (userId) => userSocketMap[userId] || [];
 
+// Keep track of the last time MongoDB was updated for a user to avoid connection churn overhead
+const lastDbUpdateCache = new Map();
+const THROTTLE_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+async function throttledUpdateLastSeen(userId) {
+    const now = Date.now();
+    const lastUpdate = lastDbUpdateCache.get(userId);
+
+    if (!lastUpdate || (now - lastUpdate > THROTTLE_TIME)) {
+        lastDbUpdateCache.set(userId, now);
+        try {
+            await User.findByIdAndUpdate(userId, { lastSeen: new Date() });
+        } catch (err) {
+            console.error(`[DB Error] Failed to update lastSeen for ${userId}:`, err);
+        }
+    }
+}
+
 io.on("connection", (socket) => {
     const userId = socket.userId;
 
@@ -54,8 +72,8 @@ io.on("connection", (socket) => {
     if (!userSocketMap[userId]) userSocketMap[userId] = [];
     userSocketMap[userId].push(socket.id);
     
-    // Also update lastSeen to 'now' when they connect
-    User.findByIdAndUpdate(userId, { lastSeen: new Date() }).catch(err => console.error(err));
+    // Update lastSeen with a throttle mechanism to protect against connection churn
+    throttledUpdateLastSeen(userId);
 
     // Mark offline pending messages as delivered
     Message.updateMany(
@@ -121,11 +139,10 @@ io.on("connection", (socket) => {
         
         if (userSocketMap[userId].length === 0) {
             delete userSocketMap[userId];
-            try {
-                await User.findByIdAndUpdate(userId, { lastSeen: new Date() });
-            } catch (err) {
-                console.error(err);
-            }
+            // Update lastSeen when they completely disconnect (if not updated recently)
+            await throttledUpdateLastSeen(userId);
+            // Clean up our local cache memory since the user is fully offline
+            lastDbUpdateCache.delete(userId);
         }
         
         io.emit("getOnlineUsers", Object.keys(userSocketMap));
