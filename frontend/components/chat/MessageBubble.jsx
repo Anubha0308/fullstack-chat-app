@@ -1,4 +1,4 @@
-import { Check, CheckCheck } from "lucide-react"
+import { Check, CheckCheck, Pin } from "lucide-react"
 import Avatar from "./Avatar"
 import ReplyPreview from "./ReplyPreview"
 
@@ -27,6 +27,12 @@ export default function MessageBubble({ msg, isMine, showTime, selectedUser, isO
                     onTouchEnd={onTouchEnd}
                     onTouchMove={onTouchEnd}
                 >
+                    {msg.isPinned && (
+    <div className="flex items-center gap-1 text-warning text-xs mb-1">
+        <Pin className="w-3 h-3" />
+        <span>Pinned Message</span>
+    </div>
+)}
                     {msg.replyTo?.message && <ReplyPreview replyTo={msg.replyTo} isMine={isMine} />}
                     {msg.image && (
                         <img
@@ -35,11 +41,37 @@ export default function MessageBubble({ msg, isMine, showTime, selectedUser, isO
                             onClick={() => window.open(msg.image, "_blank")}
                         />
                     )}
-                    {msg.audio && (
-                        <audio src={msg.audio} controls className="max-w-full h-10 mb-1" />
-                    )}
+                    {msg.image && (
+    <img
+        src={msg.image}
+        alt="attachment"
+        className="max-w-full rounded-lg mb-1 cursor-pointer"
+        onClick={() => window.open(msg.image, "_blank")}
+    />
+)}
+
+{msg.audio && (
+    <>
+        <div className="flex items-center gap-2 text-[10px] text-info font-semibold mb-1">
+            <span>🎤 Voice Note</span>
+            <span className="badge badge-xs">1x</span>
+        </div>
+
+        <audio
+            src={msg.audio}
+            controls
+            className="max-w-full h-10 mb-1"
+        />
+    </>
+)}
                     {/* GSSoC Issue #41 Fix */}
 {msg.message ? <p className="text-sm">{String(msg.message)}</p> : null}
+
+{msg.reactions && msg.reactions.length >= 3 && (
+    <div className="text-[10px] text-warning font-semibold mb-1">
+        🔥 Highly Reacted Message ({msg.reactions.length} reactions)
+    </div>
+)}
                     
                     {msg.reactions && msg.reactions.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1.5">
@@ -61,14 +93,24 @@ export default function MessageBubble({ msg, isMine, showTime, selectedUser, isO
                     <div className={`flex items-center justify-end gap-1 mt-1 text-[10px] ${isMine ? "text-primary-content/70" : "text-base-content/50"}`}>
                         <span>{formatTime(msg.createdAt)}</span>
                         {isMine && (
-                            msg.status === "seen" ? (
-                                <CheckCheck className="w-3.5 h-3.5 text-info" />
-                            ) : msg.status === "delivered" ? (
-                                <CheckCheck className="w-3.5 h-3.5" />
-                            ) : (
-                                <Check className="w-3.5 h-3.5" />
-                            )
-                        )}
+    <span
+        title={
+            msg.status === "seen"
+                ? "Read"
+                : msg.status === "delivered"
+                ? "Delivered"
+                : "Sent"
+        }
+    >
+        {msg.status === "seen" ? (
+            <CheckCheck className="w-3.5 h-3.5 text-info" />
+        ) : msg.status === "delivered" ? (
+            <CheckCheck className="w-3.5 h-3.5" />
+        ) : (
+            <Check className="w-3.5 h-3.5" />
+        )}
+    </span>
+)}
                     </div>
                 </div>
                 {isMine && (

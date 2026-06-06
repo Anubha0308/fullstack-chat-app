@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { Search, PenSquare } from "lucide-react"
+import { Search, PenSquare, Palette } from "lucide-react"
 import useChatStore from "../../src/store/useChatStore"
 import useAuthStore from "../../src/store/useAuthStore"
 import { getSocket } from "../../lib/socket"
@@ -51,12 +51,20 @@ export default function Sidebar({ selectedUser, onSelectUser, isMobileHidden }) 
         `}>
             <div className="p-4 border-b border-base-200">
                 <div className="flex items-center justify-between mb-3">
-                    <h2 className="font-bold text-lg">
-                        Messages
-                        {onlineUsers.length > 0 && (
-                            <span className="ml-2 badge badge-success badge-sm">{onlineUsers.length} online</span>
-                        )}
-                    </h2>
+                    <div>
+    <h2 className="font-bold text-lg">
+        Messages
+        {onlineUsers.length > 0 && (
+            <span className="ml-2 badge badge-success badge-sm">
+                {onlineUsers.length} online
+            </span>
+        )}
+    </h2>
+
+    <p className="text-[10px] text-base-content/40">
+        Backup status: Not configured
+    </p>
+</div>
                     <button
                         onClick={() => setShowNewChat(true)}
                         className="btn btn-ghost btn-sm btn-circle"
@@ -115,7 +123,16 @@ export default function Sidebar({ selectedUser, onSelectUser, isMobileHidden }) 
                                 <Avatar user={user} isOnline={isOnline} />
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-center justify-between">
-                                        <p className="font-medium text-sm truncate">{user.name}</p>
+                                        <div className="flex items-center gap-1 min-w-0">
+    <p className="font-medium text-sm truncate">
+        {user.name}
+    </p>
+
+    <Palette
+        className="w-3 h-3 text-primary shrink-0"
+        title="Chat personalization available"
+    />
+</div>
                                         {lm?.createdAt && (
                                             <span className="text-[10px] text-base-content/40 shrink-0 ml-2">
                                                 {formatTime(lm.createdAt)}
@@ -124,13 +141,25 @@ export default function Sidebar({ selectedUser, onSelectUser, isMobileHidden }) 
                                     </div>
                                     <div className="flex items-center justify-between">
                                         {typingUsers.includes(user._id) ? (
-                                            <p className="text-xs text-success font-bold animate-pulse truncate">typing...</p>
+                                            <div className="flex items-center gap-1">
+    <span className="w-2 h-2 rounded-full bg-success animate-pulse"></span>
+    <p className="text-xs text-success font-bold truncate">
+        typing...
+    </p>
+</div>
                                         ) : preview ? (
                                             <p className="text-xs text-base-content/50 truncate">{preview}</p>
                                         ) : (
-                                            <p className={`text-xs ${isOnline ? "text-success" : "text-base-content/40"}`}>
-                                                {isOnline ? "Online" : "Offline"}
-                                            </p>
+                                            <div className="flex items-center gap-1">
+    <span
+        className={`w-2 h-2 rounded-full ${
+            isOnline ? "bg-success" : "bg-base-300"
+        }`}
+    />
+    <p className={`text-xs ${isOnline ? "text-success" : "text-base-content/40"}`}>
+        {isOnline ? "Active now" : "Offline"}
+    </p>
+</div>
                                         )}
                                         {user.unreadCount > 0 && (
                                             <span className="badge badge-primary badge-xs ml-1 shrink-0">

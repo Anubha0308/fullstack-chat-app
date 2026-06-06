@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, useCallback } from "react"
 import {
     Image, Send, X, MessageSquare,
     ArrowLeft, Smile, Mic, Square,
-    Loader2, Phone, Video, Trash2, Search
+    Loader2, Phone, Video, Trash2,
+    Search, Clock
 } from "lucide-react"
 import toast from "react-hot-toast"
 import useAuthStore from "../../src/store/useAuthStore"
@@ -54,6 +55,7 @@ export default function ChatWindow({ selectedUser, onBack, isMobileHidden }) {
     const [searchOpen, setSearchOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState("")
     const [searchResults, setSearchResults] = useState([])
+    const [recentSearches, setRecentSearches] = useState([])
 
     // Debounced search trigger
     useEffect(() => {
@@ -62,11 +64,36 @@ export default function ChatWindow({ selectedUser, onBack, isMobileHidden }) {
             return;
         }
         const timer = setTimeout(async () => {
-            const results = await searchTextMessages(selectedUser._id, searchQuery);
-            setSearchResults(results || []);
-        }, 300);
+    const results = await searchTextMessages(
+        selectedUser._id,
+        searchQuery
+    );
+
+    setSearchResults(results || []);
+
+    const updatedSearches = [
+        searchQuery,
+        ...recentSearches.filter(
+            item => item !== searchQuery
+        )
+    ].slice(0, 5);
+
+    setRecentSearches(updatedSearches);
+
+    localStorage.setItem(
+        "recentSearches",
+        JSON.stringify(updatedSearches)
+    );
+}, 300);
         return () => clearTimeout(timer);
     }, [searchQuery, selectedUser?._id]);
+    useEffect(() => {
+    const savedSearches = JSON.parse(
+        localStorage.getItem("recentSearches") || "[]"
+    );
+
+    setRecentSearches(savedSearches);
+}, []);
 
     const scrollToMessage = (msgId) => {
         const msgElement = document.getElementById(`msg-${msgId}`);
@@ -345,6 +372,18 @@ export default function ChatWindow({ selectedUser, onBack, isMobileHidden }) {
                 <ReplyBar replyTo={replyTo} authUser={authUser} selectedUser={selectedUser} onCancel={() => setReplyTo(null)} />
             )}
 
+            <div className="px-4 py-2 flex flex-wrap gap-2">
+    {["👍 Sounds good", "Thanks!", "I'll check", "Okay"].map((reply) => (
+        <button
+            key={reply}
+            onClick={() => setText(reply)}
+            className="btn btn-xs btn-outline"
+        >
+            {reply}
+        </button>
+    ))}
+</div>
+
             {imagePreview && (
                 <div className="px-4 pb-2">
                     <div className="relative inline-block">
@@ -412,6 +451,15 @@ export default function ChatWindow({ selectedUser, onBack, isMobileHidden }) {
                             className={`btn btn-ghost btn-sm btn-square shrink-0 ${showEmoji ? "text-primary" : "text-base-content/50"}`}
                             title="Emoji"
                         >
+                            <button
+    onClick={() =>
+        toast.success("Message scheduling coming soon!")
+    }
+    className="btn btn-ghost btn-sm btn-square shrink-0"
+    title="Schedule Message"
+>
+    <Clock className="w-4 h-4 text-base-content/50" />
+</button>
                             <Smile className="w-4 h-4" />
                         </button>
                         <textarea
