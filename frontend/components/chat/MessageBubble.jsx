@@ -11,6 +11,7 @@ export default function MessageBubble({ msg, isMine, showTime, selectedUser, isO
 
     const [showTranslation, setShowTranslation] = useState(false)
     const [selectedImage, setSelectedImage] = useState(null)
+    const [isSelected, setIsSelected] = useState(false)
 
     const getTranslatedText = (text) => {
     const translations = {
@@ -43,17 +44,24 @@ export default function MessageBubble({ msg, isMine, showTime, selectedUser, isO
                     </div>
                 )}
                 <div
-                    className={`chat-bubble shadow-sm max-w-[75%] break-words cursor-pointer select-none ${isMine ? "chat-bubble-primary" : ""}`}
+    onDoubleClick={() => setIsSelected(!isSelected)}
+    className={`chat-bubble shadow-sm max-w-[75%] break-words cursor-pointer select-none ${
+        isMine ? "chat-bubble-primary" : ""
+    } ${isSelected ? "ring-2 ring-primary" : ""}`}
                     onContextMenu={e => onContextMenu(e, msg, isMine)}
                     onTouchStart={e => onTouchStart(e, msg, isMine)}
                     onTouchEnd={onTouchEnd}
                     onTouchMove={onTouchEnd}
                 >
                     {msg.isPinned && (
+
+                        
+                        
     <div className="flex items-center gap-1 text-warning text-xs mb-1">
         <Pin className="w-3 h-3" />
         <span>Pinned Message</span>
     </div>
+    
 )}
                     {msg.replyTo?.message && (
     <>
