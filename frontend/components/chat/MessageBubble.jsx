@@ -1,5 +1,6 @@
-import { Check, CheckCheck, Pin } from "lucide-react"
+import { Check, CheckCheck, Pin, Languages} from "lucide-react"
 import Avatar from "./Avatar"
+import { useState } from "react"
 import ReplyPreview from "./ReplyPreview"
 
 const formatTime = (d) =>
@@ -7,6 +8,26 @@ const formatTime = (d) =>
 
 // Single message bubble with avatar, media, reactions, and read receipts
 export default function MessageBubble({ msg, isMine, showTime, selectedUser, isOnline, authUser, onContextMenu, onTouchStart, onTouchEnd, onReact }) {
+
+    const [showTranslation, setShowTranslation] = useState(false)
+
+    const getTranslatedText = (text) => {
+    const translations = {
+        hello: "hola",
+        thanks: "gracias",
+        yes: "sí",
+        no: "no",
+        good: "bueno",
+        welcome: "bienvenido",
+        friend: "amigo"
+    }
+
+    return text
+        .split(" ")
+        .map(word => translations[word.toLowerCase()] || word)
+        .join(" ")
+}
+
     return (
         <div key={msg._id} id={`msg-${msg._id}`}>
             {showTime && (
@@ -46,15 +67,7 @@ export default function MessageBubble({ msg, isMine, showTime, selectedUser, isO
                             onClick={() => window.open(msg.image, "_blank")}
                         />
                     )}
-                    {msg.image && (
-    <img
-        src={msg.image}
-        alt="attachment"
-        className="max-w-full rounded-lg mb-1 cursor-pointer"
-        onClick={() => window.open(msg.image, "_blank")}
-    />
-)}
-
+                    
 {msg.audio && (
     <>
         <div className="flex items-center gap-2 text-[10px] text-info font-semibold mb-1">
@@ -72,7 +85,23 @@ export default function MessageBubble({ msg, isMine, showTime, selectedUser, isO
                     {/* GSSoC Issue #41 Fix */}
 {msg.message && (
     <div>
-        <p className="text-sm">{String(msg.message)}</p>
+        <p className="text-sm">
+            {showTranslation
+                ? getTranslatedText(String(msg.message))
+                : String(msg.message)}
+        </p>
+
+        <button
+            onClick={() =>
+                setShowTranslation(!showTranslation)
+            }
+            className="flex items-center gap-1 text-[10px] text-info mt-1"
+        >
+            <Languages className="w-3 h-3" />
+            {showTranslation
+                ? "Show Original"
+                : "Translate"}
+        </button>
 
         {msg.edited && (
             <span className="text-[10px] italic opacity-70">
