@@ -459,6 +459,13 @@ export async function reactToMessage(req, res) {
         const message = await Message.findById(id);
         if (!message) return res.status(404).json({ message: "Message not found" });
 
+        const isParticipant =
+            message.senderId.toString() === userId ||
+            message.receiverId.toString() === userId;
+        if (!isParticipant) {
+            return res.status(403).json({ message: "Forbidden: you are not a participant in this message conversation" });
+        }
+
         const existingReactionIndex = message.reactions.findIndex(
             (r) => r.userId.toString() === userId && r.emoji === emoji
         );
