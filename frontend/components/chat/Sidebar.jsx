@@ -44,6 +44,13 @@ export default function Sidebar({ selectedUser, onSelectUser, isMobileHidden }) 
         return () => socket.off("getOnlineUsers")
     }, [])
 
+    const totalUnread = users.reduce(
+    (sum, user) => sum + (user.unreadCount || 0),
+    0
+)
+
+const activeChats = onlineUsers.length
+
     const filtered = users.filter(u =>
     (
         selectedFolder === "All" ||
@@ -121,6 +128,28 @@ export default function Sidebar({ selectedUser, onSelectUser, isMobileHidden }) 
     ))}
 </div>
 
+<div className="px-3 py-2 border-b border-base-200">
+    <div className="stats stats-vertical shadow w-full">
+        <div className="stat py-2">
+            <div className="stat-title text-xs">
+                Active Chats
+            </div>
+            <div className="stat-value text-lg">
+                {activeChats}
+            </div>
+        </div>
+
+        <div className="stat py-2">
+            <div className="stat-title text-xs">
+                Unread Messages
+            </div>
+            <div className="stat-value text-lg">
+                {totalUnread}
+            </div>
+        </div>
+    </div>
+</div>
+
             <div className="flex-1 overflow-y-auto">
                 {isUsersLoading ? (
                     <div className="flex items-center justify-center h-32">
@@ -160,7 +189,17 @@ export default function Sidebar({ selectedUser, onSelectUser, isMobileHidden }) 
                                         : "border-l-2 border-transparent"}
                                 `}
                             >
-                                <Avatar user={user} isOnline={isOnline} />
+                                <div
+    title={
+        isOnline
+            ? "Currently Online"
+            : user.lastSeen
+            ? `Last active: ${formatTime(user.lastSeen)}`
+            : "Offline"
+    }
+>
+    <Avatar user={user} isOnline={isOnline} />
+</div>
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-1 min-w-0">
@@ -211,11 +250,13 @@ export default function Sidebar({ selectedUser, onSelectUser, isMobileHidden }) 
                     isOnline ? "bg-success" : "bg-base-300"
                 }`}
             />
-            <p className={`text-xs ${
-                isOnline ? "text-success" : "text-base-content/40"
-            }`}>
-                {isOnline ? "Active now" : "Offline"}
-            </p>
+            <p className={`text-xs ${isOnline ? "text-success" : "text-base-content/40"}`}>
+    {isOnline
+        ? "Active now"
+        : user.lastSeen
+        ? `Last active ${formatTime(user.lastSeen)}`
+        : "Offline"}
+</p>
         </div>
     )}
 
